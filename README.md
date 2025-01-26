@@ -26,12 +26,6 @@ ExtensionHound is a powerful forensic tool that breaks through the chrome.exe at
 - 📁 Multiple output formats (Console, CSV, JSON)
 - 🖥️ Cross-platform support (Windows, macOS, Linux)
 
-## Prerequisites
-
-- Python 3.6 or higher
-- Google Chrome browser
-- VirusTotal API key (optional, for domain reputation checking)
-
 ## Installation
 
 1. Clone the repository:
