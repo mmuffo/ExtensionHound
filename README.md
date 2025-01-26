@@ -1,3 +1,5 @@
+ [═══════════════════════ 🔍 EXTENTION HOUND 🔍 ═══════════════════════]
+
 # ExtensionHound 🔍
 
 ## The Challenge: Chrome Extension DNS Forensics
@@ -85,6 +87,40 @@ Common flags:
 - `--virustotal`: Enable VirusTotal domain checking
 - `--output FORMAT`: Choose output format (csv/json)
 - `--output-file PATH`: Specify output file path
+
+## Usage Examples
+
+Here are some practical examples of how to use ExtensionHound:
+
+### Basic Security Audit
+```bash
+# Run a basic scan with VirusTotal check and save results
+python ExtensionHound.py --vt --output csv --output-file audit_results.csv
+
+# Generate a dated security report
+python ExtensionHound.py --vt --output json --output-file "audits/$(date +%Y-%m-%d)_security_report.json"
+```
+
+### Profile-Specific Analysis
+```bash
+# Analyze a specific Chrome profile
+python ExtensionHound.py --chrome-dir "/path/to/Chrome User Data/Profile 1"
+
+# Deep dive into the Default profile with reputation checks
+python ExtensionHound.py --chrome-dir "/path/to/Chrome User Data/Default" --vt
+```
+
+### Continuous Monitoring
+```bash
+# Create an hourly monitoring script
+while true; do
+    python ExtensionHound.py --vt --output json --output-file "logs/$(date +%Y-%m-%d_%H).json"
+    sleep 3600
+done
+
+# Monitor and alert on suspicious domains
+python ExtensionHound.py --vt | grep "Malicious" | notify-send "Suspicious Extension Activity"
+```
 
 ## How It Works
 
