@@ -9,10 +9,14 @@ import csv
 from pathlib import Path
 from prettytable import PrettyTable
 from datetime import datetime, timedelta
-from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+    # Load environment variables from .env file
+    load_dotenv()
+except ImportError:
+    # If python-dotenv is not installed, continue without it
+    pass
 
 # Get configuration from environment variables
 VT_API_KEY = os.getenv('VT_API_KEY')
@@ -223,10 +227,16 @@ def print_with_delay(message, delay=0.5):
 def analyze_network_state(profile_path):
     try:
         profile_name = os.path.basename(profile_path)
-        state_file = os.path.join(profile_path, 'Network Persistent State')
+        # Network Persistent State file is in the Network subdirectory on both Windows and macOS
+        state_file = os.path.join(profile_path, 'Network', 'Network Persistent State')
         
         if not os.path.exists(state_file):
-            return []
+            # Try alternate path (just in case)
+            alt_state_file = os.path.join(profile_path, 'Network Persistent State')
+            if os.path.exists(alt_state_file):
+                state_file = alt_state_file
+            else:
+                return []
         
         connections = []
         with open(state_file, 'r', encoding='utf-8') as f:
@@ -327,6 +337,8 @@ def print_aggregated_view(all_connections, include_vt=False):
         print("\n❌ No extensions found with DNS activity.")
         return
         
+    print("\n✓ Found {} unique extensions".format(len(extensions)))
+    
     # Create and populate the table
     table = PrettyTable()
     table.field_names = ["Extension ID", "Domains", "Profiles"]
@@ -473,7 +485,7 @@ def scan_profile(profile_path):
     return analyze_network_state(profile_path)
 
 def print_banner():
-    return """
+    banner = '''
 ███████╗██╗  ██╗████████╗███████╗███╗   ██╗███████╗██╗ ██████╗ ███╗   ██╗
 ██╔════╝╚██╗██╔╝╚══██╔══╝██╔════╝████╗  ██║██╔════╝██║██╔═══██╗████╗  ██║
 █████╗   ╚███╔╝    ██║   █████╗  ██╔██╗ ██║███████╗██║██║   ██║██╔██╗ ██║
@@ -487,9 +499,10 @@ def print_banner():
 ██║  ██║╚██████╔╝╚██████╔╝██║ ╚████║██████╔╝
 ╚═╝  ╚═╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝╚═════╝ 
 ════════════════════════════════════════════════════
-🔍 Extension Hound | Version 1.0.0
-🛡️  By Amram Englander
-════════════════════════════════════════════════════"""
+🔍 Chrome Extension DNS Forensics
+🛡️  By Amram Englander 
+════════════════════════════════════════════════════'''
+    return banner
 
 def print_initial_info(args):
     """Print initial program info without delays"""

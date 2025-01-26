@@ -1,6 +1,30 @@
 # ExtensionHound 🔍
 
-ExtensionHound is a powerful Python tool that analyzes network connections made by Chrome extensions. It helps users monitor and understand the network activity of their installed Chrome extensions, with optional VirusTotal integration for domain reputation checking.
+## The Challenge: Chrome Extension DNS Forensics
+
+As a security investigator, you've encountered a common frustration: Chrome extensions making suspicious DNS requests, but they're nearly impossible to trace back to their source. Why? Because all DNS requests appear to come from the chrome.exe process, making it extremely difficult to determine which extension is responsible for what network activity.
+
+Traditional network monitoring tools show:
+```
+Process: chrome.exe
+DNS Query: suspicious-domain.com
+```
+But which extension made that request? The trail goes cold... until now.
+
+ExtensionHound is purpose-built to solve this forensic challenge by:
+1. Analyzing Chrome's internal network state
+2. Correlating DNS requests with specific extensions
+3. Revealing the hidden connections between extensions and their network activities
+
+## What ExtensionHound Does
+
+ExtensionHound is a powerful forensic tool that breaks through the chrome.exe attribution barrier, allowing you to:
+- 🔍 Map DNS requests back to their originating extensions
+- 📊 Track historical network connections per extension
+- 🕒 Provide temporal analysis of extension activities
+- 🌐 Integrate with VirusTotal for reputation checking
+- 📁 Export findings in multiple formats (Console, CSV, JSON)
+- 🖥️ Work across all major platforms (Windows, macOS, Linux)
 
 ## Features
 
@@ -21,8 +45,8 @@ ExtensionHound is a powerful Python tool that analyzes network connections made 
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/chrome-domain-extractor.git
-cd chrome-domain-extractor
+git clone https://github.com/yourusername/extension-hound.git
+cd extension-hound
 ```
 
 2. Create and activate a virtual environment (recommended):
@@ -61,6 +85,16 @@ Common flags:
 - `--virustotal`: Enable VirusTotal domain checking
 - `--output FORMAT`: Choose output format (csv/json)
 - `--output-file PATH`: Specify output file path
+
+## How It Works
+
+ExtensionHound dives deep into Chrome's internal network state, accessing the data that traditional network monitoring tools can't see. It correlates DNS requests with extension activities by:
+1. Analyzing Chrome's internal network state files
+2. Mapping network sockets to extension IDs
+3. Building a comprehensive timeline of extension network activities
+4. Providing clear, actionable intelligence about extension behaviors
+
+This gives investigators the missing link between network activity and the extensions responsible for it.
 
 ## Example Output
 
