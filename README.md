@@ -67,7 +67,7 @@ Here are some practical examples of how to use ExtensionHound:
 
 ### Basic Security Audit
 ```bash
-# Run a basic and save results to csv
+# Run a basic scan and save results to csv
 python ExtensionHound.py --output csv --output-file audit_results.csv
 
 # Run a basic scan with VirusTotal and save results to json
@@ -81,48 +81,6 @@ python ExtensionHound.py --chrome-dir "/path/to/Chrome User Data/Profile 1"
 
 # Deep dive into the Default profile with reputation checks
 python ExtensionHound.py --chrome-dir "/path/to/Chrome User Data/Default" --vt
-```
-## Example Output
-
-The tool provides a detailed view of network connections:
-+----------------------------------+----------------------------------+---------------------------+
-| EXTENSION ID                     | DOMAINS                          | PROFILES                  |
-+----------------------------------+----------------------------------+---------------------------+
-| aeblfdkhhhdcdjpifhhbdiojplfjncoa | c.1password.com                  | Default                   |
-|                                  | my.1password.com                 |                           |
-|                                  | telemetry.1passwordservices.com  |                           |
-|                                  | watchtower.1password.com         |                           |
-+----------------------------------+----------------------------------+---------------------------+
-| bfogiafebfohielmmehodmfbbebbbpei | keepersecurity.com               | Profile 3                 |
-+----------------------------------+----------------------------------+---------------------------+
-| bmnlcjabgnpnenekpadlanbbkooimhnj | cdn-checkout.joinhoney.com       | Profile 2                 |
-|                                  | cdn.honey.io                     |                           |
-|                                  | d.joinhoney.com                  |                           |
-|                                  | o197999.ingest.sentry.io         |                           |
-|                                  | s.joinhoney.com                  |                           |
-|                                  | v.joinhoney.com                  |                           |
-+----------------------------------+----------------------------------+---------------------------+
-| ghdoangbdengbkokhihepcjgdkdogcdi | a.nel.cloudflare.com             | Profile 2                 |
-|                                  | cashdo.co.il                     |                           |
-+----------------------------------+----------------------------------+---------------------------+
-| gighmmpiobklfepjocnamgkkbiglidom | adblock.telemetry.eyeo.com       | Default                   |
-|                                  | adblock.telemetry.getadblock.com |                           |
-+----------------------------------+----------------------------------+---------------------------+
-| gjgdhpnmmpcpgjaepjehbijfgdblflbi | extconfig-v2.handz.co.il         | Profile 2                 |
-+----------------------------------+----------------------------------+---------------------------+                  |
-| kpehlcnleoaejbmmgncofcgpjnojlfbn | api.freepdfconvert.com           | Default, Profile 2,       |
-|                                  | file.notion.so                   | Profile 3                 |
-|                                  | hub.abs.perception-point.io      |                           |
-|                                  | www.notion.so                    |                           |
-+----------------------------------+----------------------------------+---------------------------+
-| ldgfbffkinooeloadekpmfoklnobpien | api.raindrop.io                  | Profile 2                 |
-+----------------------------------+----------------------------------+---------------------------+
-| neebplgakaahbhdphmkckjjcegoiijjo | data.amazon.com                  | Default                   |
-|                                  | dyn.keepa.com                    |                           |
-|                                  | www.amazon.com                   |                           |
-+----------------------------------+----------------------------------+---------------------------+
-| nkbihfbeogaeaoehlefnkodbefgpgknn | metamask.github.io               | Profile 2                 |
-+----------------------------------+----------------------------------+---------------------------+
 ```
 
 ## Contributing
