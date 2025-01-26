@@ -1,6 +1,5 @@
- [═══════════════════════ 🔍 EXTENTION HOUND 🔍 ═══════════════════════]
-
 # ExtensionHound 🔍
+![2025012701061-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/c6ad484f-9c1a-40de-a669-882c245be6ee)
 
 ## The Challenge: Chrome Extension DNS Forensics
 
@@ -21,18 +20,8 @@ ExtensionHound is purpose-built to solve this forensic challenge by:
 ## What ExtensionHound Does
 
 ExtensionHound is a powerful forensic tool that breaks through the chrome.exe attribution barrier, allowing you to:
-- 🔍 Map DNS requests back to their originating extensions
-- 📊 Track historical network connections per extension
-- 🕒 Provide temporal analysis of extension activities
-- 🌐 Integrate with VirusTotal for reputation checking
-- 📁 Export findings in multiple formats (Console, CSV, JSON)
-- 🖥️ Work across all major platforms (Windows, macOS, Linux)
-
-## Features
-
 - 🔍 Scans Chrome profiles for extension network activity
 - 📊 Provides detailed analysis of network connections
-- 🕒 Includes timestamp information for connections
 - 🌐 Optional VirusTotal integration for domain reputation checking
 - 📁 Multiple output formats (Console, CSV, JSON)
 - 🖥️ Cross-platform support (Windows, macOS, Linux)
@@ -72,16 +61,6 @@ pip install -r requirements.txt
 
 ## Usage
 
-Basic usage:
-```bash
-python extensionhound.py
-```
-
-Advanced options:
-```bash
-python extensionhound.py --help
-```
-
 Common flags:
 - `--chrome-dir PATH`: Specify custom Chrome directory
 - `--virustotal`: Enable VirusTotal domain checking
@@ -94,10 +73,10 @@ Here are some practical examples of how to use ExtensionHound:
 
 ### Basic Security Audit
 ```bash
-# Run a basic scan with VirusTotal check and save results
-python ExtensionHound.py --vt --output csv --output-file audit_results.csv
+# Run a basic and save results to csv
+python ExtensionHound.py --output csv --output-file audit_results.csv
 
-# Generate a dated security report
+# Run a basic scan with VirusTotal and save results to json
 python ExtensionHound.py --vt --output json --output-file "audits/$(date +%Y-%m-%d)_security_report.json"
 ```
 
@@ -109,56 +88,49 @@ python ExtensionHound.py --chrome-dir "/path/to/Chrome User Data/Profile 1"
 # Deep dive into the Default profile with reputation checks
 python ExtensionHound.py --chrome-dir "/path/to/Chrome User Data/Default" --vt
 ```
-
-### Continuous Monitoring
-```bash
-# Create an hourly monitoring script
-while true; do
-    python ExtensionHound.py --vt --output json --output-file "logs/$(date +%Y-%m-%d_%H).json"
-    sleep 3600
-done
-
-# Monitor and alert on suspicious domains
-python ExtensionHound.py --vt | grep "Malicious" | notify-send "Suspicious Extension Activity"
-```
-
-## How It Works
-
-ExtensionHound dives deep into Chrome's internal network state, accessing the data that traditional network monitoring tools can't see. It correlates DNS requests with extension activities by:
-1. Analyzing Chrome's internal network state files
-2. Mapping network sockets to extension IDs
-3. Building a comprehensive timeline of extension network activities
-4. Providing clear, actionable intelligence about extension behaviors
-
-This gives investigators the missing link between network activity and the extensions responsible for it.
-
 ## Example Output
 
 The tool provides a detailed view of network connections:
-```
-Profile: Default
-└── Extension: Extension Name
-    ├── Domain: example.com
-    │   └── Last accessed: 2023-01-01 12:00:00
-    └── Domain: another-example.com
-        └── Last accessed: 2023-01-01 12:05:00
++----------------------------------+----------------------------------+---------------------------+
+| EXTENSION ID                     | DOMAINS                          | PROFILES                  |
++----------------------------------+----------------------------------+---------------------------+
+| aeblfdkhhhdcdjpifhhbdiojplfjncoa | c.1password.com                  | Default                   |
+|                                  | my.1password.com                 |                           |
+|                                  | telemetry.1passwordservices.com  |                           |
+|                                  | watchtower.1password.com         |                           |
++----------------------------------+----------------------------------+---------------------------+
+| bfogiafebfohielmmehodmfbbebbbpei | keepersecurity.com               | Profile 3                 |
++----------------------------------+----------------------------------+---------------------------+
+| bmnlcjabgnpnenekpadlanbbkooimhnj | cdn-checkout.joinhoney.com       | Profile 2                 |
+|                                  | cdn.honey.io                     |                           |
+|                                  | d.joinhoney.com                  |                           |
+|                                  | o197999.ingest.sentry.io         |                           |
+|                                  | s.joinhoney.com                  |                           |
+|                                  | v.joinhoney.com                  |                           |
++----------------------------------+----------------------------------+---------------------------+
+| ghdoangbdengbkokhihepcjgdkdogcdi | a.nel.cloudflare.com             | Profile 2                 |
+|                                  | cashdo.co.il                     |                           |
++----------------------------------+----------------------------------+---------------------------+
+| gighmmpiobklfepjocnamgkkbiglidom | adblock.telemetry.eyeo.com       | Default                   |
+|                                  | adblock.telemetry.getadblock.com |                           |
++----------------------------------+----------------------------------+---------------------------+
+| gjgdhpnmmpcpgjaepjehbijfgdblflbi | extconfig-v2.handz.co.il         | Profile 2                 |
++----------------------------------+----------------------------------+---------------------------+                  |
+| kpehlcnleoaejbmmgncofcgpjnojlfbn | api.freepdfconvert.com           | Default, Profile 2,       |
+|                                  | file.notion.so                   | Profile 3                 |
+|                                  | hub.abs.perception-point.io      |                           |
+|                                  | www.notion.so                    |                           |
++----------------------------------+----------------------------------+---------------------------+
+| ldgfbffkinooeloadekpmfoklnobpien | api.raindrop.io                  | Profile 2                 |
++----------------------------------+----------------------------------+---------------------------+
+| neebplgakaahbhdphmkckjjcegoiijjo | data.amazon.com                  | Default                   |
+|                                  | dyn.keepa.com                    |                           |
+|                                  | www.amazon.com                   |                           |
++----------------------------------+----------------------------------+---------------------------+
+| nkbihfbeogaeaoehlefnkodbefgpgknn | metamask.github.io               | Profile 2                 |
++----------------------------------+----------------------------------+---------------------------+
 ```
 
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- Thanks to VirusTotal for providing domain reputation services
-- Built with Python and various open-source libraries
-
-## Security Notes
-
-- This tool only reads Chrome's existing network state files
-- No active network monitoring or modification is performed
-- API keys should be kept secure and never committed to version control
