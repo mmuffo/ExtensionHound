@@ -36,8 +36,8 @@ ExtensionHound is a powerful forensic tool that breaks through the chrome proces
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/extension-hound.git
-cd extension-hound
+git clone https://github.com/arsolutioner/ExtentionHound.git
+cd ExtentionHound
 ```
 
 2. Create and activate a virtual environment (recommended):
