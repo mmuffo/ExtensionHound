@@ -2,6 +2,9 @@
   <img src="https://github.com/user-attachments/assets/e8358ed9-f1ae-4bac-8dff-6fe131c04ed0" alt="Centered Image" width="300">
 </p>
 
+<hr />
+
+
 ## The Challenge: Chrome Extension DNS Forensics
 
 As a security investigator, you've encountered a common frustration: Chrome extensions making suspicious DNS requests, but they're nearly impossible to trace back to their source. Why? Because all DNS requests appear to come from the chrome.exe process, making it extremely difficult to determine which extension is responsible for what network activity.
