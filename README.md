@@ -89,6 +89,11 @@ python ExtensionHound.py --chrome-dir "/path/to/Chrome User Data/Profile 1"
 # Deep dive into the Default profile with reputation checks
 python ExtensionHound.py --chrome-dir "/path/to/Chrome User Data/Default" --vt
 ```
+## Contact & Support
+
+- 💼 LinkedIn: [Amram Englander](https://www.linkedin.com/in/amram-englander-a23a6a89/)
+- 📧 Secure Email: amrameng@proton.me
+- 🛡️ For urgent security assistance or consultation, feel free to reach out via ProtonMail or LinkedIn
 
 ## Contributing
 
