@@ -25,8 +25,8 @@ ExtensionHound is purpose-built to solve this forensic challenge by:
 
 ## What ExtensionHound Does
 
-ExtensionHound is a powerful forensic tool that breaks through the chrome.exe attribution barrier, allowing you to:
-- 🔍 Scans Chrome profiles for extension network activity
+ExtensionHound is a powerful forensic tool that breaks through the chrome process attribution barrier, allowing you to:
+- 🔍 Scans Chrome profiles for extension DNS request history
 - 📊 Provides detailed analysis of network connections
 - 🌐 Optional VirusTotal integration for domain reputation checking
 - 📁 Multiple output formats (Console, CSV, JSON)
@@ -76,7 +76,7 @@ Here are some practical examples of how to use ExtensionHound:
 python ExtensionHound.py --output csv --output-file audit_results.csv
 ```
 
-### Run a VirusTotal and save results to json
+### Run a VirusTotal scan and save results to json
 ```bash
 python ExtensionHound.py --vt --output json --output-file "audits/$(date +%Y-%m-%d)_security_report.json"
 ```
