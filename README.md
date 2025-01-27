@@ -3,7 +3,7 @@
 </p>
 
 <hr />
-
+![2025012701061-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/c6ad484f-9c1a-40de-a669-882c245be6ee)
 
 ## The Challenge: Chrome Extension DNS Forensics
 
@@ -21,7 +21,6 @@ ExtensionHound is purpose-built to solve this forensic challenge by:
 2. Correlating DNS requests with specific extensions
 3. Revealing the hidden connections between extensions and their network activities
 
-![2025012701061-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/c6ad484f-9c1a-40de-a669-882c245be6ee)
 
 ## What ExtensionHound Does
 
