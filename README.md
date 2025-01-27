@@ -1,10 +1,6 @@
 <p align="center">
-    <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/e8358ed9-f1ae-4bac-8dff-6fe131c04ed0">
-        <img src="https://github.com/user-attachments/assets/e8358ed9-f1ae-4bac-8dff-6fe131c04ed0" alt="BloodHound Community Edition" width="300" height="343" />
-    </picture>
+  <img src="https://github.com/user-attachments/assets/e8358ed9-f1ae-4bac-8dff-6fe131c04ed0" alt="Centered Image" width="300">
 </p>
-
 
 ## The Challenge: Chrome Extension DNS Forensics
 
