@@ -1,9 +1,7 @@
 <p align="center">
   <img src="https://github.com/user-attachments/assets/cb493d1f-b689-466b-839d-52ef506b211e" alt="Centered Image" width="500">
 </p>
-
 <hr />
-
 ![2025012701061-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/7b6b0073-8856-4e44-bd3a-dab4ecebda3b)
 
 ## The Challenge: Chrome Extension DNS Forensics
