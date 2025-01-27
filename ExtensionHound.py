@@ -370,9 +370,9 @@ def print_aggregated_view(all_connections, include_vt=False):
     # Create detailed table
     detailed_table = PrettyTable()
     if include_vt:
-        detailed_table.field_names = ["Profile", "Extension ID", "Domain", "Type", "Last Seen", "VT Status"]
+        detailed_table.field_names = ["Profile", "Extension ID", "Domain", "Type", "Next Retry", "VT Status"]
     else:
-        detailed_table.field_names = ["Profile", "Extension ID", "Domain", "Type", "Last Seen"]
+        detailed_table.field_names = ["Profile", "Extension ID", "Domain", "Type", "Next Retry"]
     
     detailed_table.align = "l"
     detailed_table.border = True
