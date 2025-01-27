@@ -65,16 +65,17 @@ Common flags:
 
 Here are some practical examples of how to use ExtensionHound:
 
-### Basic Security Audit
+### Run a basic scan and save results to csv
 ```bash
-# Run a basic scan and save results to csv
 python ExtensionHound.py --output csv --output-file audit_results.csv
+```
 
-# Run a basic scan with VirusTotal and save results to json
+### Run a VirusTotal and save results to json
+```bash
 python ExtensionHound.py --vt --output json --output-file "audits/$(date +%Y-%m-%d)_security_report.json"
 ```
 
-### Profile-Specific Analysis
+### Run Offline For Profile-Specific Analysis
 ```bash
 # Analyze a specific Chrome profile
 python ExtensionHound.py --chrome-dir "/path/to/Chrome User Data/Profile 1"
