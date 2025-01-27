@@ -8,7 +8,7 @@
 
 ## The Challenge: Chrome Extension DNS Forensics
 
-As a security investigator, you've encountered a common frustration: Chrome extensions making suspicious DNS requests, but they're nearly impossible to trace back to their source. Why? Because all DNS requests appear to come from the chrome.exe process, making it extremely difficult to determine which extension is responsible for what network activity.
+As a security investigator, you've encountered a common frustration: Chrome extensions making suspicious DNS requests, but they're nearly impossible to trace back to their source. Why? Because all DNS requests appear to come from the chrome process, making it extremely difficult to determine which extension is responsible for what network activity.
 
 Traditional network monitoring tools show:
 ```
