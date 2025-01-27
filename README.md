@@ -1,8 +1,6 @@
 
 ![image__1_-removebg (3)](https://github.com/user-attachments/assets/eb5ae391-51a8-423a-bb66-41eb9a950a90)
-
-![2025012701061-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/c6ad484f-9c1a-40de-a669-882c245be6ee)
-
+---
 ## The Challenge: Chrome Extension DNS Forensics
 
 As a security investigator, you've encountered a common frustration: Chrome extensions making suspicious DNS requests, but they're nearly impossible to trace back to their source. Why? Because all DNS requests appear to come from the chrome.exe process, making it extremely difficult to determine which extension is responsible for what network activity.
@@ -18,6 +16,8 @@ ExtensionHound is purpose-built to solve this forensic challenge by:
 1. Analyzing Chrome's internal network state
 2. Correlating DNS requests with specific extensions
 3. Revealing the hidden connections between extensions and their network activities
+
+![2025012701061-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/c6ad484f-9c1a-40de-a669-882c245be6ee)
 
 ## What ExtensionHound Does
 
