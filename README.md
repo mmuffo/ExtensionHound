@@ -3,7 +3,8 @@
 </p>
 
 <hr />
-![2025012701061-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/c6ad484f-9c1a-40de-a669-882c245be6ee)
+
+![2025012701061-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/7b6b0073-8856-4e44-bd3a-dab4ecebda3b)
 
 ## The Challenge: Chrome Extension DNS Forensics
 
