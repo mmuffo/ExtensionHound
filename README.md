@@ -1,5 +1,7 @@
 
-![image__1_-removebg (3)](https://github.com/user-attachments/assets/eb5ae391-51a8-423a-bb66-41eb9a950a90)
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/eb5ae391-51a8-423a-bb66-41eb9a950a90" alt="Image Description" width="300">
+</p>
 ---
 ## The Challenge: Chrome Extension DNS Forensics
 
