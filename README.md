@@ -1,4 +1,7 @@
-# ExtensionHound 🔍
+
+
+![image](https://github.com/user-attachments/assets/3327389e-1bb8-4ba4-8720-dff647265e0a)
+
 ![2025012701061-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/c6ad484f-9c1a-40de-a669-882c245be6ee)
 
 ## The Challenge: Chrome Extension DNS Forensics
