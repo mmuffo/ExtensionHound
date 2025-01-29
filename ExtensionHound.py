@@ -97,45 +97,49 @@ def check_domain_reputation(domain, indent=""):
         time.sleep(wait_time)
     
     try:
-        url = f'https://www.virustotal.com/vtapi/v2/domain/report'
-        params = {'apikey': VT_API_KEY, 'domain': domain}
-        response = requests.get(url, params=params)
+        url = f'https://www.virustotal.com/api/v3/domains/{domain}'
+        headers = {
+            "accept": "application/json",
+            "x-apikey": VT_API_KEY
+        }
+        response = requests.get(url, headers=headers)
         last_vt_check = time.time()
         
         if response.status_code == 200:
             result = response.json()
             
-            # Count clean vendors
-            clean_vendors = 0
-            total_vendors = 0
-            
-            for key in result:
-                if key.endswith('_detected'):
-                    vendor_name = key.replace('_detected', '')
-                    if not result[key]:  # If vendor says it's clean
-                        clean_vendors += 1
-                    total_vendors += 1
-            
-            detected = total_vendors - clean_vendors if total_vendors > 0 else 0
-            
-            reputation = {
-                'detections': detected,
-                'total_vendors': total_vendors,
-                'clean_vendors': clean_vendors
-            }
-            checked_domains[domain] = reputation
-            
-            # Print immediate result with status indicators
-            if detected == 0:
-                print(f"{indent}✅ {domain}: Clean (0/{total_vendors})")
-            elif detected < 3:
-                print(f"{indent}⚠️  {domain}: Low Risk ({detected}/{total_vendors})")
-            elif detected < 10:
-                print(f"{indent}🚨 {domain}: Medium Risk ({detected}/{total_vendors})")
+            if 'data' in result and 'attributes' in result['data']:
+                attrs = result['data']['attributes']
+                
+                # Get last_analysis_stats which contains the detection summary
+                stats = attrs.get('last_analysis_stats', {})
+                
+                detected = stats.get('malicious', 0) + stats.get('suspicious', 0)
+                total_vendors = sum(stats.values()) if stats else 0
+                
+                reputation = {
+                    'detections': detected,
+                    'total_vendors': total_vendors,
+                    'clean_vendors': total_vendors - detected
+                }
+                checked_domains[domain] = reputation
+                
+                # Print immediate result with status indicators
+                if detected == 0:
+                    print(f"{indent}✅ {domain}: Clean (0/{total_vendors})")
+                elif detected < 3:
+                    print(f"{indent}⚠️  {domain}: Low Risk ({detected}/{total_vendors})")
+                elif detected < 10:
+                    print(f"{indent}🚨 {domain}: Medium Risk ({detected}/{total_vendors})")
+                else:
+                    print(f"{indent}⛔ {domain}: High Risk ({detected}/{total_vendors})")
+                
+                return reputation
             else:
-                print(f"{indent}⛔ {domain}: High Risk ({detected}/{total_vendors})")
-            
-            return reputation
+                print(f"{indent}❌ Unexpected API response format for {domain}")
+        else:
+            print(f"{indent}❌ Error checking reputation for {domain}: {response.status_code}")
+    
     except Exception as e:
         print(f"{indent}❌ Error checking reputation for {domain}: {str(e)}")
     
