@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+"""
+ExtensionHound - Chrome Extension Network Activity Analyzer
+Version: 1.1.0
+
+A forensic tool for analyzing Chrome extension DNS activity and network connections.
+"""
+
 import os
 import json
 import base64
@@ -398,9 +406,9 @@ def print_aggregated_view(all_connections, include_vt=False, include_secure_anne
     # Create detailed table
     detailed_table = PrettyTable()
     if include_vt:
-        detailed_table.field_names = ["Profile", "Extension ID", "Domain", "Type", "Next Retry", "VT Status"]
+        detailed_table.field_names = ["Profile", "Extension ID", "Domain", "Type", "Timestamp", "VT Status"]
     else:
-        detailed_table.field_names = ["Profile", "Extension ID", "Domain", "Type", "Next Retry"]
+        detailed_table.field_names = ["Profile", "Extension ID", "Domain", "Type", "Timestamp"]
     
     detailed_table.align = "l"
     detailed_table.border = True
@@ -417,7 +425,7 @@ def print_aggregated_view(all_connections, include_vt=False, include_secure_anne
                 conn['extension_id'],
                 conn['domain'],
                 conn.get('type', 'Active'),
-                conn.get('next_retry', '-')
+                conn.get('timestamp', 'No timestamp')
             ]
             
             if include_vt:
