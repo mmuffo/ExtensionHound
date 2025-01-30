@@ -28,6 +28,7 @@ ExtensionHound is a powerful forensic tool that breaks through the chrome proces
 - 🔍 Scans Chrome profiles for extension DNS request history
 - 📊 Provides detailed analysis of network connections
 - 🌐 Optional VirusTotal integration for domain reputation checking
+- 🔐 Optional Secure Annex integration for extension details (users, rating)
 - 📁 Multiple output formats (Console, CSV, JSON)
 - 🖥️ Cross-platform support (Windows, macOS, Linux)
 
@@ -50,11 +51,17 @@ source venv/bin/activate  # On Windows, use: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. (Optional) Set up VirusTotal integration:
+4. Set up API integrations (optional):
    - Create a `.env` file in the project root
-   - Add your VirusTotal API key:
+   - Add your API keys:
      ```
-     VT_API_KEY=your_api_key_here
+     # VirusTotal API Key for domain reputation checks
+     VT_API_KEY=your_virustotal_api_key_here
+     
+     # Secure Annex API Key for extension details
+     SECUREANNEX_API_KEY=your_secureannex_api_key_here
+     
+     # Rate limit for API calls (per minute)
      RATE_LIMIT_PER_MINUTE=4
      ```
 
@@ -62,7 +69,8 @@ pip install -r requirements.txt
 
 Common flags:
 - `--chrome-dir PATH`: Specify custom Chrome directory
-- `--virustotal`: Enable VirusTotal domain checking
+- `--vt`: Enable VirusTotal domain checking
+- `--secure-annex`: Enable Secure Annex extension details
 - `--output FORMAT`: Choose output format (csv/json)
 - `--output-file PATH`: Specify output file path
 
@@ -75,9 +83,9 @@ Here are some practical examples of how to use ExtensionHound:
 python ExtensionHound.py --output csv --output-file audit_results.csv
 ```
 
-### Run a VirusTotal scan and save results to json
+### Run a full analysis with both VirusTotal and Secure Annex
 ```bash
-python ExtensionHound.py --vt --output json --output-file "audits/$(date +%Y-%m-%d)_security_report.json"
+python ExtensionHound.py --vt --secure-annex --output json --output-file "audits/$(date +%Y-%m-%d)_security_report.json"
 ```
 
 ### Run Offline For Profile-Specific Analysis
@@ -85,9 +93,27 @@ python ExtensionHound.py --vt --output json --output-file "audits/$(date +%Y-%m-
 # Analyze a specific Chrome profile
 python ExtensionHound.py --chrome-dir "/path/to/Chrome User Data/Profile 1"
 
-# Deep dive into the Default profile with reputation checks
-python ExtensionHound.py --chrome-dir "/path/to/Chrome User Data/Default" --vt
+# Deep dive into the Default profile with all features enabled
+python ExtensionHound.py --chrome-dir "/path/to/Chrome User Data/Default" --vt --secure-annex
 ```
+
+## Features
+
+### VirusTotal Integration
+- Checks domain reputation against VirusTotal's database
+- Shows detection ratios with severity indicators:
+  - ✅ Clean (0 detections)
+  - ⚠️ Low Risk (1-2 detections)
+  - 🚨 Medium Risk (3-9 detections)
+  - ⛔ High Risk (10+ detections)
+
+### Secure Annex Integration
+- Retrieves detailed information about Chrome extensions:
+  - Extension name and developer
+  - Number of active users
+  - Extension rating
+  - Helps identify potentially malicious or suspicious extensions
+
 ## Contact & Support
 
 - 💼 LinkedIn: [Amram Englander](https://www.linkedin.com/in/amram-englander-a23a6a89/)
