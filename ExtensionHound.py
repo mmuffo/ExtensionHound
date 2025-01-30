@@ -20,6 +20,7 @@ except ImportError:
 
 # Get configuration from environment variables
 VT_API_KEY = os.getenv('VT_API_KEY')
+SECUREANNEX_API_KEY = os.getenv('SECUREANNEX_API_KEY')
 RATE_LIMIT_PER_MINUTE = int(os.getenv('RATE_LIMIT_PER_MINUTE', '4'))
 
 last_vt_check = time.time() - 60  # Initialize to allow first check immediately
@@ -160,43 +161,40 @@ def format_reputation(reputation):
     else:
         return f"⛔ High Risk ({detections}/{total})"
 
-def get_help_text():
-    return f'''{print_banner()}
-
-Description:
-    Analyze Chrome browser's Network State to identify and track DNS queries made by extensions.
-    Helps security teams investigate suspicious extension behavior.
-
-Features:
-    - Extract all domains contacted by extensions
-    - Check domain reputation using VirusTotal (optional)
-    - Track broken connections and their retry times
-    - Export results to CSV or JSON format
-    - Analyze local Chrome or a copied Chrome User Data directory
-
-Usage Examples:
-    Basic Analysis:
-        %(prog)s
+def get_extension_details(extension_id):
+    """Get extension details from Secure Annex API"""
+    if not SECUREANNEX_API_KEY:
+        print("\nError: SECUREANNEX_API_KEY not set")
+        return None
         
-    Analysis with VirusTotal Check:
-        %(prog)s --vt
+    # Remove any null bytes from the extension ID
+    extension_id = extension_id.replace('\x00', '')
         
-    Analyze Custom Chrome Directory:
-        %(prog)s --chrome-dir "/path/to/Chrome User Data"
-        %(prog)s --chrome-dir "/path/to/Chrome User Data" --vt
+    url = "https://api.secureannex.com/v0/extensions"
+    headers = {'x-api-key': SECUREANNEX_API_KEY}
+    params = {'extension_id': extension_id}
+    
+    try:
+        # First try the extensions endpoint
+        response = requests.get(url, headers=headers, params=params)
         
-    Save Results as CSV:
-        %(prog)s --output csv
-        %(prog)s --vt --output csv --output-file my_analysis.csv
-        
-    Save Results as JSON:
-        %(prog)s --output json
-        %(prog)s --vt --output json --output-file my_analysis.json
-
-Note: When using --vt, make sure to set your VirusTotal API key in the .env file:
-    VT_API_KEY=your_api_key_here
-    RATE_LIMIT_PER_MINUTE=4  # Adjust based on your API quota
-'''
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('result') and len(data['result']) > 0:
+                return data['result'][0]
+            
+            # If no results, try direct URL format
+            direct_url = f"{url}/{extension_id}"
+            response = requests.get(direct_url, headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('result') and len(data['result']) > 0:
+                    return data['result'][0]
+                
+    except Exception as e:
+        print(f"\nError fetching extension details: {str(e)}")
+    return None
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
@@ -209,6 +207,10 @@ def parse_arguments():
     parser.add_argument('--vt', 
                       action='store_true',
                       help='Enable VirusTotal reputation check for discovered domains')
+
+    parser.add_argument('--secure-annex',
+                      action='store_true',
+                      help='Enable Secure Annex integration to show extension details')
     
     parser.add_argument('--output', 
                       choices=['csv', 'json'],
@@ -313,7 +315,7 @@ def format_timestamp(timestamp_str):
     except (ValueError, TypeError):
         return timestamp_str
 
-def print_aggregated_view(all_connections, include_vt=False):
+def print_aggregated_view(all_connections, include_vt=False, include_secure_annex=False):
     if not all_connections:
         return
         
@@ -333,6 +335,16 @@ def print_aggregated_view(all_connections, include_vt=False):
                 'domains': set(),
                 'profiles': set()
             }
+            if include_secure_annex:
+                ext_details = get_extension_details(ext_id)
+                if ext_details:
+                    extensions[ext_id]['name'] = ext_details.get('name', ext_details.get('owner', 'Not Found'))
+                    extensions[ext_id]['users'] = f"{ext_details.get('users', 0):,}" if ext_details.get('users') else 'N/A'
+                    extensions[ext_id]['rating'] = ext_details.get('rating', 'N/A')
+                else:
+                    extensions[ext_id]['name'] = 'Not Found'
+                    extensions[ext_id]['users'] = 'N/A'
+                    extensions[ext_id]['rating'] = 'N/A'
         
         extensions[ext_id]['domains'].add(domain)
         extensions[ext_id]['profiles'].add(profile)
@@ -345,24 +357,36 @@ def print_aggregated_view(all_connections, include_vt=False):
     
     # Create and populate the table
     table = PrettyTable()
-    table.field_names = ["Extension ID", "Domains", "Profiles"]
-    table.align = "l"
+    if include_secure_annex:
+        table.field_names = ["Extension ID", "Name", "Users", "Rating", "Domains", "Profiles"]
+        table._max_width = {"Extension ID": 40, "Name": 30, "Users": 12, "Rating": 8, "Domains": 60, "Profiles": 25}
+    else:
+        table.field_names = ["Extension ID", "Domains", "Profiles"]
+        table._max_width = {"Extension ID": 40, "Domains": 60, "Profiles": 25}
     
-    # Set specific column widths and styling
-    table._max_width = {"Extension ID": 40, "Domains": 60, "Profiles": 25}
+    table.align = "l"
     table.border = True
     table.header_style = "upper"
-    table.hrules = True  # Add horizontal lines between all rows
+    table.hrules = True
     
     # Add rows
     for ext_id, data in sorted(extensions.items()):
-        # Put each domain on a new line
         domains_text = "\n".join(sorted(data['domains']))
-        
-        # Format profiles as comma-separated list
         profiles = ", ".join(sorted(data['profiles']))
         
-        table.add_row([ext_id, domains_text, profiles])
+        if include_secure_annex:
+            row = [
+                ext_id,
+                data['name'],
+                data['users'],
+                data['rating'],
+                domains_text,
+                profiles
+            ]
+        else:
+            row = [ext_id, domains_text, profiles]
+            
+        table.add_row(row)
     
     print(table)
     
@@ -381,98 +405,156 @@ def print_aggregated_view(all_connections, include_vt=False):
     detailed_table.align = "l"
     detailed_table.border = True
     detailed_table.header_style = "upper"
+    detailed_table.hrules = True
     
-    # Organize connections by profile and extension
-    organized = {}
-    for conn in all_connections:
-        profile = conn['profile']
-        ext_id = conn['extension_id']
-        if profile not in organized:
-            organized[profile] = {}
-        if ext_id not in organized[profile]:
-            organized[profile][ext_id] = []
-        organized[profile][ext_id].append(conn)
-    
-    # Add rows to detailed table
-    for profile in sorted(organized.keys()):
-        for ext_id in sorted(organized[profile].keys()):
-            connections = sorted(organized[profile][ext_id], 
-                              key=lambda x: (x['domain'], x['timestamp'] if x['timestamp'] != 'No timestamp' else ''))
+    # Group connections by extension for better readability
+    for ext_id in sorted(extensions.keys()):
+        ext_connections = [c for c in all_connections if c['extension_id'] == ext_id]
+        
+        for conn in sorted(ext_connections, key=lambda x: x['domain']):
+            row = [
+                conn['profile'],
+                conn['extension_id'],
+                conn['domain'],
+                conn.get('type', 'Active'),
+                conn.get('next_retry', '-')
+            ]
             
-            for conn in connections:
-                timestamp = format_timestamp(conn['timestamp'])
-                
-                row = [
-                    os.path.basename(profile),  # Show only profile name, not full path
-                    ext_id,
-                    conn['domain'],
-                    conn['type'],
-                    timestamp
-                ]
-                
-                if include_vt:
-                    if conn.get('reputation'):
-                        detections = f"{conn['reputation']['detections']}/{conn['reputation']['total_vendors']}"
-                        if conn['reputation']['detections'] == 0:
-                            detections = f"✅ {detections}"
-                        elif conn['reputation']['detections'] < 3:
-                            detections = f"⚠️  {detections}"
-                        elif conn['reputation']['detections'] < 10:
-                            detections = f"🚨 {detections}"
-                        else:
-                            detections = f"⛔ {detections}"
+            if include_vt:
+                if 'reputation' in conn:
+                    rep = conn['reputation']
+                    detections = rep['detections']
+                    total = rep['total_vendors']
+                    
+                    # Add emoji based on severity
+                    if detections == 0:
+                        vt_status = f"✅ 0/{total}"
+                    elif detections < 3:
+                        vt_status = f"⚠️  {detections}/{total}"
+                    elif detections < 10:
+                        vt_status = f"🚨 {detections}/{total}"
                     else:
-                        detections = "No data"
-                    row.append(detections)
-                
-                detailed_table.add_row(row)
+                        vt_status = f"⛔ {detections}/{total}"
+                else:
+                    vt_status = "No data"
+                row.append(vt_status)
             
-            # Add separator between extensions
+            detailed_table.add_row(row)
+        
+        # Only add separator if there are more extensions to come
+        if ext_id != sorted(extensions.keys())[-1]:
             separator = ["-" * 10] * (6 if include_vt else 5)
             detailed_table.add_row(separator)
     
     print(detailed_table)
 
-def save_to_csv(connections, filename, include_vt=False):
-    """Save connections to CSV file"""
-    fieldnames = ['profile', 'extension_id', 'domain', 'type', 'timestamp']
-    if include_vt:
-        fieldnames.extend(['vt_detections', 'vt_total_vendors'])
+def clean_text(text):
+    """Clean text by replacing Unicode characters with ASCII equivalents"""
+    replacements = {
+        '\u2013': '-',  # en-dash
+        '\u2014': '-',  # em-dash
+        '\u00ae': '(R)',  # registered trademark
+        '\u2122': '(TM)',  # trademark
+        '\u2019': "'",  # right single quotation mark
+        '\u2018': "'",  # left single quotation mark
+        '\u201c': '"',  # left double quotation mark
+        '\u201d': '"',  # right double quotation mark
+    }
+    for unicode_char, ascii_char in replacements.items():
+        text = text.replace(unicode_char, ascii_char)
+    return text
+
+def save_to_csv(connections, filename, include_vt=False, include_secure_annex=False):
+    """Save connections to CSV file in an aggregated format by extension"""
+    fieldnames = ['extension_id', 'name', 'users', 'rating', 'domains', 'profiles']
+    
+    # First, organize connections by extension
+    extensions = {}
+    for conn in connections:
+        ext_id = conn['extension_id'].replace('\x00', '')  # Clean null bytes
+        domain = conn['domain']
+        profile = conn['profile']
         
+        if ext_id not in extensions:
+            extensions[ext_id] = {
+                'domains': set(),
+                'profiles': set(),
+                'name': 'Not Found',
+                'users': 'N/A',
+                'rating': 'N/A'
+            }
+            if include_secure_annex:
+                ext_details = get_extension_details(ext_id)
+                if ext_details:
+                    extensions[ext_id]['name'] = clean_text(ext_details.get('name', ext_details.get('owner', 'Not Found')))
+                    extensions[ext_id]['users'] = ext_details.get('users', 'N/A')
+                    extensions[ext_id]['rating'] = ext_details.get('rating', 'N/A')
+        
+        extensions[ext_id]['domains'].add(domain)
+        extensions[ext_id]['profiles'].add(profile)
+    
+    # Write to CSV
     with open(filename, 'w', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
-        for conn in connections:
+        
+        for ext_id, data in sorted(extensions.items()):
             row = {
-                'profile': conn['profile'],
-                'extension_id': conn['extension_id'],
-                'domain': conn['domain'],
-                'type': conn['type'],
-                'timestamp': conn['timestamp']
+                'extension_id': ext_id,
+                'name': data['name'],
+                'users': data['users'],
+                'rating': data['rating'],
+                'domains': '; '.join(sorted(data['domains'])),
+                'profiles': ', '.join(sorted(data['profiles']))
             }
-            if include_vt and 'reputation' in conn and conn['reputation']:
-                row['vt_detections'] = conn['reputation']['detections']
-                row['vt_total_vendors'] = conn['reputation']['total_vendors']
             writer.writerow(row)
+    
     print(f"\n✅ Results saved to {filename}")
 
-def save_to_json(connections, filename, include_vt=False):
-    """Save connections to JSON file"""
-    output_connections = []
+def save_to_json(connections, filename, include_vt=False, include_secure_annex=False):
+    """Save connections to JSON file in an aggregated format by extension"""
+    # First, organize connections by extension
+    extensions = {}
     for conn in connections:
-        connection_data = {
-            'profile': conn['profile'],
-            'extension_id': conn['extension_id'],
-            'domain': conn['domain'],
-            'type': conn['type'],
-            'timestamp': conn['timestamp']
+        ext_id = conn['extension_id'].replace('\x00', '')  # Clean null bytes
+        domain = conn['domain']
+        profile = conn['profile']
+        
+        if ext_id not in extensions:
+            extensions[ext_id] = {
+                'extension_id': ext_id,
+                'domains': set(),
+                'profiles': set(),
+                'name': 'Not Found',
+                'users': 'N/A',
+                'rating': 'N/A'
+            }
+            if include_secure_annex:
+                ext_details = get_extension_details(ext_id)
+                if ext_details:
+                    extensions[ext_id]['name'] = clean_text(ext_details.get('name', ext_details.get('owner', 'Not Found')))
+                    extensions[ext_id]['users'] = ext_details.get('users', 'N/A')
+                    extensions[ext_id]['rating'] = ext_details.get('rating', 'N/A')
+        
+        extensions[ext_id]['domains'].add(domain)
+        extensions[ext_id]['profiles'].add(profile)
+    
+    # Convert sets to sorted lists for JSON serialization
+    output_extensions = []
+    for ext_id, data in sorted(extensions.items()):
+        ext_data = {
+            'extension_id': ext_id,
+            'name': data['name'],
+            'users': data['users'],
+            'rating': data['rating'],
+            'domains': sorted(data['domains']),
+            'profiles': sorted(data['profiles'])
         }
-        if include_vt and 'reputation' in conn and conn['reputation']:
-            connection_data['reputation'] = conn['reputation']
-        output_connections.append(connection_data)
+        output_extensions.append(ext_data)
         
     with open(filename, 'w') as f:
-        json.dump(output_connections, f, indent=2)
+        json.dump(output_extensions, f, indent=2)
+    
     print(f"\n✅ Results saved to {filename}")
 
 def get_chrome_profiles():
@@ -511,10 +593,53 @@ def print_banner():
 def print_initial_info(args):
     """Print initial program info without delays"""
     print("\n🔍 STARTING CHROME NETWORK STATE ANALYSIS")
-    print("📊 Mode: " + ("Full Analysis with VirusTotal Reputation Check" if args.vt else "Basic Analysis"))
+    modes = []
+    if args.vt:
+        modes.append("VirusTotal Reputation Check")
+    if args.secure_annex:
+        modes.append("Secure Annex Extension Details")
+    print("📊 Mode: " + (" + ".join(modes) if modes else "Basic Analysis"))
     if args.chrome_dir:
         print(f"📁 Chrome Directory: {args.chrome_dir}")
     print("=" * 100)
+
+def get_help_text():
+    return f'''{print_banner()}
+
+Description:
+    Analyze Chrome browser's Network State to identify and track DNS queries made by extensions.
+    Helps security teams investigate suspicious extension behavior.
+
+Features:
+    - Extract all domains contacted by extensions
+    - Check domain reputation using VirusTotal (optional)
+    - Track broken connections and their retry times
+    - Export results to CSV or JSON format
+    - Analyze local Chrome or a copied Chrome User Data directory
+
+Usage Examples:
+    Basic Analysis:
+        %(prog)s
+        
+    Analysis with VirusTotal Check:
+        %(prog)s --vt
+        
+    Analyze Custom Chrome Directory:
+        %(prog)s --chrome-dir "/path/to/Chrome User Data"
+        %(prog)s --chrome-dir "/path/to/Chrome User Data" --vt
+        
+    Save Results as CSV:
+        %(prog)s --output csv
+        %(prog)s --vt --output csv --output-file my_analysis.csv
+        
+    Save Results as JSON:
+        %(prog)s --output json
+        %(prog)s --vt --output json --output-file my_analysis.json
+
+Note: When using --vt, make sure to set your VirusTotal API key in the .env file:
+    VT_API_KEY=your_api_key_here
+    RATE_LIMIT_PER_MINUTE=4  # Adjust based on your API quota
+'''
 
 def main():
     args = parse_arguments()
@@ -539,48 +664,35 @@ def main():
     total_domains = set()
     
     for profile_path in profiles:
-        profile_name = os.path.basename(profile_path)
-        print_step(f"  📁 Scanning {profile_name}...", delay=0.2)
         connections = scan_profile(profile_path)
-        all_connections.extend(connections)
-        total_domains.update(conn['domain'] for conn in connections)
+        if connections:
+            all_connections.extend(connections)
+            for conn in connections:
+                total_domains.add(conn['domain'])
     
-    if not total_domains:
-        print_step("\n❌ No extension DNS activity found in the Chrome profiles.")
-        print_step("\n✅ Analysis complete!")
+    if not all_connections:
+        print_step("❌ No extension network activity found!")
         return
         
     print_step(f"✓ Found {len(total_domains)} unique domains")
     
-    # VirusTotal scanning phase
+    # VT reputation check if enabled
     if args.vt:
-        print_step("\nStep 3/4: 🔍 Starting VirusTotal reputation checks")
-        est_time = (len(total_domains) * (60 / RATE_LIMIT_PER_MINUTE)) / 60
-        print_step(f"⏱️  Estimated scan time: {int(est_time)} minutes and {int((est_time % 1) * 60)} seconds")
-        print_step(f"⚡ Rate limit: {RATE_LIMIT_PER_MINUTE} requests per minute")
-        
-        # Process profile by profile
-        organized = organize_connections(all_connections)
-        for profile_idx, (profile, extensions) in enumerate(organized.items(), 1):
-            print_step(f"\n  📁 Profile {profile_idx}/{len(organized)}: {profile}")
-            
-            for ext_id, connections in extensions.items():
-                print_step(f"    📦 Extension: {ext_id}")
-                domains = {conn['domain'] for conn in connections}
-                
-                for domain in sorted(domains):
-                    if domain not in checked_domains:
-                        reputation = check_domain_reputation(domain, indent="      ")
-                        if reputation:
-                            for conn in connections:
-                                if conn['domain'] == domain:
-                                    conn['reputation'] = reputation
+        print_step("\nStep 3/4: 🛡️  Checking domain reputation")
+        for domain in sorted(total_domains):
+            reputation = check_domain_reputation(domain)
+            # Store reputation data in all connections with this domain
+            if reputation:
+                for conn in all_connections:
+                    if conn['domain'] == domain:
+                        conn['reputation'] = reputation
+    else:
+        print_step("\nStep 3/4: 🛡️  Skipping domain reputation check (use --vt to enable)")
     
-    # Results phase
     print_step("\nStep 4/4: 📊 Generating analysis report")
     
     # Print summary with VT data if available
-    print_aggregated_view(all_connections, include_vt=args.vt)
+    print_aggregated_view(all_connections, include_vt=args.vt, include_secure_annex=args.secure_annex)
     
     # Save results if requested
     if args.output:
@@ -590,9 +702,9 @@ def main():
             args.output_file = f'chrome_extensions_analysis_{timestamp}.{args.output}'
         
         if args.output == 'csv':
-            save_to_csv(all_connections, args.output_file, include_vt=args.vt)
+            save_to_csv(all_connections, args.output_file, include_vt=args.vt, include_secure_annex=args.secure_annex)
         else:  # json
-            save_to_json(all_connections, args.output_file, include_vt=args.vt)
+            save_to_json(all_connections, args.output_file, include_vt=args.vt, include_secure_annex=args.secure_annex)
     
     print_step("\n✅ Analysis complete!", delay=1)
 
