@@ -448,11 +448,6 @@ def print_aggregated_view(all_connections, include_vt=False, include_secure_anne
                 row.append(vt_status)
             
             detailed_table.add_row(row)
-        
-        # Only add separator if there are more extensions to come
-        if ext_id != sorted(extensions.keys())[-1]:
-            separator = ["-" * 10] * (6 if include_vt else 5)
-            detailed_table.add_row(separator)
     
     print(detailed_table)
 
