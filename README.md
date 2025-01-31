@@ -28,7 +28,7 @@ ExtensionHound is a powerful forensic tool that breaks through the chrome proces
 - 🔍 Scans Chrome profiles for extension DNS request history
 - 📊 Provides detailed analysis of network connections
 - 🌐 Optional VirusTotal integration for domain reputation checking
-- 🔐 Optional Secure Annex integration for extension details (users, rating)
+- 🔐 Optional Secure Annex integration for extension details (users, rating,Yara pattern matching)
 - 📁 Multiple output formats (Console, CSV, JSON)
 - 🖥️ Cross-platform support (Windows, macOS, Linux)
 
