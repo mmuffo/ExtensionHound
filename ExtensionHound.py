@@ -204,6 +204,30 @@ def get_extension_details(extension_id):
         print(f"\nError fetching extension details: {str(e)}")
     return None
 
+def get_extension_signatures(extension_id):
+    """Get Yara signatures from Secure Annex API for a specific extension"""
+    if not SECUREANNEX_API_KEY:
+        return None
+        
+    # Remove any null bytes from the extension ID
+    extension_id = extension_id.replace('\x00', '')
+        
+    url = f"https://api.secureannex.com/v0/signatures"
+    headers = {'x-api-key': SECUREANNEX_API_KEY}
+    params = {'extension_id': extension_id}
+    
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('result'):
+                return data['result']
+                
+    except Exception as e:
+        print(f"\nError fetching signatures: {str(e)}")
+    return None
+
 def parse_arguments():
     parser = argparse.ArgumentParser(
         description=get_help_text(),
@@ -327,12 +351,15 @@ def print_aggregated_view(all_connections, include_vt=False, include_secure_anne
     if not all_connections:
         return
         
-    print("\n" + "=" * 100)
+    print("=" * 100)
     print("🔍 AGGREGATED EXTENSION ANALYSIS")
     print("=" * 100)
+    print()
     
     # First, organize connections by extension
     extensions = {}
+    signatures_found = False  # Track if we found any signatures
+    
     for conn in all_connections:
         ext_id = conn['extension_id']
         domain = conn['domain']
@@ -341,7 +368,8 @@ def print_aggregated_view(all_connections, include_vt=False, include_secure_anne
         if ext_id not in extensions:
             extensions[ext_id] = {
                 'domains': set(),
-                'profiles': set()
+                'profiles': set(),
+                'signatures': []  # Add signatures list
             }
             if include_secure_annex:
                 ext_details = get_extension_details(ext_id)
@@ -349,6 +377,12 @@ def print_aggregated_view(all_connections, include_vt=False, include_secure_anne
                     extensions[ext_id]['name'] = ext_details.get('name', ext_details.get('owner', 'Not Found'))
                     extensions[ext_id]['users'] = f"{ext_details.get('users', 0):,}" if ext_details.get('users') else 'N/A'
                     extensions[ext_id]['rating'] = ext_details.get('rating', 'N/A')
+                    
+                    # Get signatures if we have extension details
+                    signatures = get_extension_signatures(ext_id)
+                    if signatures:
+                        extensions[ext_id]['signatures'] = signatures
+                        signatures_found = True
                 else:
                     extensions[ext_id]['name'] = 'Not Found'
                     extensions[ext_id]['users'] = 'N/A'
@@ -363,7 +397,7 @@ def print_aggregated_view(all_connections, include_vt=False, include_secure_anne
         
     print("\n✓ Found {} unique extensions".format(len(extensions)))
     
-    # Create and populate the table
+    # Create and populate the extensions table
     table = PrettyTable()
     if include_secure_annex:
         table.field_names = ["Extension ID", "Name", "Users", "Rating", "Domains", "Profiles"]
@@ -377,7 +411,7 @@ def print_aggregated_view(all_connections, include_vt=False, include_secure_anne
     table.header_style = "upper"
     table.hrules = True
     
-    # Add rows
+    # Add rows to extensions table
     for ext_id, data in sorted(extensions.items()):
         domains_text = "\n".join(sorted(data['domains']))
         profiles = ", ".join(sorted(data['profiles']))
@@ -398,10 +432,51 @@ def print_aggregated_view(all_connections, include_vt=False, include_secure_anne
     
     print(table)
     
+    # Print Yara signatures table if we found any
+    if signatures_found:
+        print("\n" + "=" * 100)
+        print("🔍 YARA SIGNATURE MATCHES")
+        print("=" * 100)
+        
+        signatures_table = PrettyTable()
+        signatures_table.field_names = ["Extension Name", "Extension ID", "Rule", "Severity", "File Path"]
+        signatures_table._max_width = {
+            "Extension Name": 30,
+            "Extension ID": 40,
+            "Rule": 30,
+            "Severity": 10,
+            "File Path": 40
+        }
+        signatures_table.align = "l"
+        signatures_table.border = True
+        signatures_table.header_style = "upper"
+        signatures_table.hrules = True
+        
+        for ext_id, data in sorted(extensions.items()):
+            if 'signatures' in data and data['signatures']:
+                ext_name = data.get('name', 'Unknown')
+                for sig in data['signatures']:
+                    severity = sig.get('meta', {}).get('severity', 'unknown')
+                    severity_icon = {
+                        'high': '🔴',
+                        'medium': '🟡',
+                        'low': '🟢'
+                    }.get(severity.lower(), '⚪')
+                    
+                    signatures_table.add_row([
+                        ext_name,
+                        ext_id,
+                        sig.get('rule', 'Unknown'),
+                        f"{severity_icon} {severity.title()}",
+                        sig.get('file_path', 'Unknown')
+                    ])
+        
+        print(signatures_table)
+    
     # Print detailed connections table
     print("\n" + "=" * 100)
     print("🔍 DETAILED NETWORK CONNECTIONS")
-    print("=" * 100 + "\n")
+    print("=" * 100)
     
     # Create detailed table
     detailed_table = PrettyTable()
