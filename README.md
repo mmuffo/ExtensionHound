@@ -119,7 +119,11 @@ python ExtensionHound.py --chrome-dir "/path/to/Chrome User Data/Default" --vt -
   - Number of active users
   - Extension rating
   - Helps identify potentially malicious or suspicious extensions
-
+- YARA Rules Integration
+  - Uses YARA rules for advanced extension signature detection
+  - Identifies potentially malicious extensions based on code patterns
+  - Helps detect known malicious behaviors and techniques
+  
 ## Contact & Support
 
 - 💼 LinkedIn: [Amram Englander](https://www.linkedin.com/in/amram-englander-a23a6a89/)
